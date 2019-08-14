@@ -1,0 +1,195 @@
+<?php
+
+	//set_time_limit(0);
+	//ini_set('memory_limit','1024M');
+
+	//NETO API Receiver
+	$body = file_get_contents('php://input');
+	$xml = simplexml_load_string($body);
+	$adn = $xml->Order->OrderID;
+	$OrderStatus = $xml->Order->OrderStatus;
+	$extensionnetokey = Mage::getStoreConfig('dzinehub_netoinventory/general/netokey',Mage::app()->getStore());
+	//New order in Neto and decrement item qty in Magento
+	if($OrderStatus=="New")
+	{
+		$apiEndPoint="dz.neto.com.au/do/WS/NetoAPI";   
+
+		$requestXml = '<?xml version="1.0" encoding="UTF-8"?>';
+		$requestXml .= '<GetOrder>';
+		$requestXml .= '<Filter>';
+		$requestXml .= '<OrderID>';
+		$requestXml .= $adn;
+		$requestXml .= '</OrderID>';
+		$requestXml .= '<OutputSelector>OrderLine</OutputSelector>';
+		$requestXml .= '<OutputSelector>ProductSubtotal</OutputSelector>';
+		$requestXml .= '</Filter>';
+		$requestXml .= '</GetOrder>';
+
+		$headers = array (
+		"NETOAPI_KEY: $extensionnetokey",
+		'NETOAPI_ACTION:GetOrder',
+		//'NETOAPI_USERNAME:dzinehub',
+		//'Content-Type: text/xml;charset=utf-8'
+		'Content-Type: text/xml'
+		);
+
+		$ch = curl_init($apiEndPoint);
+		curl_setopt($ch, CURLOPT_POST, true);
+		curl_setopt($ch, CURLOPT_POSTFIELDS, $requestXml);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYHOST,false);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER,false);   
+		curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+		$responseXML = curl_exec($ch);
+		curl_close($ch);
+		$resp = simplexml_load_string($responseXML);
+
+		//Checking order placed is not from magento
+		if(($resp->Ack != 'Success') && ($resp->Order->SalesChannel!="API")) {       
+			//echo "<br><br>Shop Name : Not Found<br><br>";
+			exit();
+		} 
+		else
+		{
+			//echo "<br><br>Shop Name : Found<br><br>";
+			foreach($resp->Order as $order)
+			{
+				//echo "<br><br>NETO Order ID : ".$order->OrderID[0]."<br><br>";
+				//Getting SKU and Qty from Neto
+				$sku = $order->OrderLine->SKU[0];
+				$qty = $order->OrderLine->Quantity[0];
+				
+				//Getting SKU and Qty from Magento
+				$_productcode = Mage::getModel('catalog/product')->loadByAttribute('sku', $sku);
+				
+				if($_productcode)
+				{
+					$stock = Mage::getModel('cataloginventory/stock_item')->loadByProduct($_productcode);
+					if($stock->getQty()>$qty)
+					{
+						$qty=$stock->getQty()-$qty;
+				
+						//Qty update in Magento
+						$id = Mage::getModel('catalog/product')->getIdBySku($sku);     
+						$product = Mage::getModel('catalog/product')->load($id);
+						$product->setStockData(array(
+						'manage_stock' => 1,
+						'use_config_manage_stock' => 0,
+						'is_in_stock' => 1,
+						'qty' => $qty
+						));
+						$product->save();
+					}
+					else
+					{
+						$netologtext = nl2br("\nThe order (".$sku.") is placed in Neto at ".date("r")." but not updated in Magento");
+						$folder = substr($_SERVER['SCRIPT_FILENAME'],0,strrpos($_SERVER['SCRIPT_FILENAME'],"/")+1);
+						$filename = $folder."netolog.txt" ;
+						$fp = fopen($filename,"a") or die("Open error!");
+						fwrite($fp, $netologtext) or die("Write error!");
+						fclose($fp);
+						exit();
+					}
+				}
+				else
+				{
+					$netologtext = nl2br("\nThe order (".$sku.") is placed in Neto at ".date("r")." but not updated in Magento");
+					$folder = substr($_SERVER['SCRIPT_FILENAME'],0,strrpos($_SERVER['SCRIPT_FILENAME'],"/")+1);
+					$filename = $folder."netolog.txt" ;
+					$fp = fopen($filename,"a") or die("Open error!");
+					fwrite($fp, $netologtext) or die("Write error!");
+					fclose($fp);
+					exit();
+				}
+			}
+		}
+	}
+	if($OrderStatus=="Cancelled")
+	{
+		$apiEndPoint="dz.neto.com.au/do/WS/NetoAPI";   
+
+		$requestXml = '<?xml version="1.0" encoding="UTF-8"?>';
+		$requestXml .= '<GetOrder>';
+		$requestXml .= '<Filter>';
+		$requestXml .= '<OrderID>';
+		$requestXml .= $adn;
+		$requestXml .= '</OrderID>';
+		$requestXml .= '<OutputSelector>OrderLine</OutputSelector>';
+		$requestXml .= '<OutputSelector>ProductSubtotal</OutputSelector>';
+		$requestXml .= '</Filter>';
+		$requestXml .= '</GetOrder>';
+
+		$headers = array (
+		"NETOAPI_KEY: $extensionnetokey",
+		'NETOAPI_ACTION:GetOrder',
+		//'NETOAPI_USERNAME:dzinehub',
+		'Content-Type: text/xml'
+		);
+
+		$ch = curl_init($apiEndPoint);
+		curl_setopt($ch, CURLOPT_POST, true);
+		curl_setopt($ch, CURLOPT_POSTFIELDS, $requestXml);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYHOST,false);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER,false);   
+		curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+		$responseXML = curl_exec($ch);
+		curl_close($ch);
+		$resp = simplexml_load_string($responseXML);
+
+		if(($resp->Ack != 'Success') && ($resp->Order->SalesChannel!="API")) {       
+			//echo "<br><br>Shop Name : Not Found<br><br>";
+			exit();
+		} 
+		else
+		{
+			//echo "<br><br>Shop Name : Found<br><br>";
+			foreach($resp->Order as $order)
+			{
+				//echo "<br><br>NETO Order ID : ".$order->OrderID[0]."<br><br>";
+				$sku = $order->OrderLine->SKU[0];
+				$qty = $order->OrderLine->Quantity[0];
+
+				$_productcode = Mage::getModel('catalog/product')->loadByAttribute('sku', $sku);
+				if($_productcode)
+				{
+					$stock = Mage::getModel('cataloginventory/stock_item')->loadByProduct($_productcode);
+					if($stock->getQty()>$qty)
+					{
+						$qty = $stock->getQty()+$qty;
+						$id = Mage::getModel('catalog/product')->getIdBySku($sku);     
+						$product = Mage::getModel('catalog/product')->load($id);
+						$product->setStockData(array(
+						'manage_stock' => 1,
+						'use_config_manage_stock' => 0,
+						'is_in_stock' => 1,
+						'qty' => $qty
+						));
+
+						$product->save();
+					}
+					else
+					{
+						$netologtext = nl2br("\nThe order (".$sku.") is cancelled in Neto at ".date("r")." but not updated in Magento");
+						$folder = substr($_SERVER['SCRIPT_FILENAME'],0,strrpos($_SERVER['SCRIPT_FILENAME'],"/")+1);
+						$filename = $folder."netolog.txt" ;
+						$fp = fopen($filename,"a") or die("Open error!");
+						fwrite($fp, $netologtext) or die("Write error!");
+						fclose($fp);
+						exit();
+					}
+				}
+				else
+				{
+					$netologtext = nl2br("\nThe order (".$sku.") is cancelled in Neto at ".date("r")." but not updated in Magento");
+					$folder = substr($_SERVER['SCRIPT_FILENAME'],0,strrpos($_SERVER['SCRIPT_FILENAME'],"/")+1);
+					$filename = $folder."netolog.txt" ;
+					$fp = fopen($filename,"a") or die("Open error!");
+					fwrite($fp, $netologtext) or die("Write error!");
+					fclose($fp);
+					exit();
+				}
+			}
+		}
+	}
+?>

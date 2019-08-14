@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<layout version="0.1.0">
+    <dzinehub_index_netoinventory>
+        <reference name="content">
+			<blocks>
+				<netoinventory>
+					<class>Dzinehub_netoinventory_Block</class>
+					<rewrite>
+						<product_netoinventory>Dzinehub_Netoinventory_Block_Product_Netoinventory</product_netoinventory>
+					</rewrite>
+				</netoinventory>
+			</blocks>
+			<models>
+				<netoinventory>
+					<class>Dzinehub_netoinventory_Model</class>
+				</netoinventory>
+			</models>
+        </reference>
+    </dzinehub_index_netoinventory>
+     <checkout_onepage_success translate="label">
+
+        <reference name="content">
+            <block name="neto" template="dzinehub/netoinventory.phtml" type="netoinventory/product_netoinventory" />
+        </reference>
+
+    </checkout_onepage_success>
+</layout> 

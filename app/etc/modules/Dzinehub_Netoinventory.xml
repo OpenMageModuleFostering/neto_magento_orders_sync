@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<config>
+    <modules>
+        <Dzinehub_Netoinventory>
+            <active>true</active>
+            <codePool>community</codePool>
+        </Dzinehub_Netoinventory>
+    </modules>
+</config>

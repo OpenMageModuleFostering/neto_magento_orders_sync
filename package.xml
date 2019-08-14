@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<package>
+    <name>Neto_Magento_Orders_Sync</name>
+    <version>1.0.0.1</version>
+    <stability>stable</stability>
+    <license uri="http://opensource.org/licenses/gpl-license.php">GNU General Public License (GPL)</license>
+    <channel>community</channel>
+    <extends/>
+    <summary>Enabling all magento merchants to use neto as their multi-channel software, yet continue using the magento as their choice of ecommerce frontend. Use neto as your ecommerce backend, and magento to power your website frontend, and automatically synchronize the sales orders across both the systems.</summary>
+    <description>The world's first neto to magento connect!&#xD;
+&#xD;
+Those merchants who wish to continue using magento as their ecommerce frontend software, but prefer using neto for their multi-channel business needs, can now sync across the two systems!&#xD;
+&#xD;
+The sales orders will continue to be processed at neto. Every time a sale happens at magento's end, the quantities are adjusted in neto using neto's API calls. And every time a sale happens in neto, the product quantities are adjusted in magento using neto's push notification system. &#xD;
+&#xD;
+Single products and multi-variations are seamlessly handled during the orders sync process.&#xD;
+&#xD;
+Manage your product shipment and fulfillment entirely from neto! You never have to login to magento admin for order processing!&#xD;
+&#xD;
+Note: This extension requires you to set all products up in neto and magento manually, and ensure the same SKU is used across both the platforms for the similar products. The product SKU is used to identify the products.</description>
+    <notes>1) This version syncs the sales orders across the two systems. Product sync will be added in the future versions.</notes>
+    <authors><author><name>Arun</name><user>arun</user><email>arun@dzine-hub.com</email></author></authors>
+    <date>2015-04-24</date>
+    <time>10:24:50</time>
+    <contents><target name="magecommunity"><dir name="Dzinehub"><dir name="Netoinventory"><dir name="Block"><dir name="Product"><file name="Bestsellers_1.php" hash="cae07bbe4df5ba93e89569a33c150253"/><file name="Netoinventory.php" hash="26fa4f90d7c71a4416252a676ebe0fbc"/></dir></dir><dir name="Model"><dir name="System"><dir name="Config"><dir name="Source"><file name="Enabledisable.php" hash="cc907542cfe11f4d5aa4fb537c3584e9"/><file name="Yesno.php" hash="b506c229f70bf2101f244e8191f9a3bd"/></dir></dir></dir></dir><dir name="etc"><file name="adminhtml.xml" hash="3f661dac80d0437334c2849bcf9dd9fe"/><file name="config.xml" hash="3c06b621d08060c8fc92667ddd4fe18a"/><file name="system.xml" hash="11608ef2bb3189f3f33d16ca57bc662a"/></dir></dir></dir></target><target name="mageetc"><dir name="modules"><file name="Dzinehub_Netoinventory.xml" hash="c1146415c6c59cb334285015c8c32d88"/></dir></target><target name="magedesign"><dir name="frontend"><dir name="base"><dir name="default"><dir name="template"><dir name="dzinehub"><file name="neto.phtml" hash="f97ea5b73ca7c6323190359faf68372f"/><file name="netoinventory.phtml" hash="a39c87da6390a06ad418799316a06d21"/></dir></dir><dir name="layout"><file name="netoinventory.xml" hash="e9cb6308442e271575b70d97a17c76f0"/></dir></dir></dir></dir></target><target name="mageskin"><dir name="adminhtml"><dir name="default"><dir name="default"><dir name="images"><dir name="dzinehub"><file name="dzinehub.png" hash="1938212479ffe381cc68af0299d7d832"/></dir></dir></dir></dir></dir></target><target name="mageweb"><dir name="."><file name="netolog.txt" hash="d41d8cd98f00b204e9800998ecf8427e"/></dir></target></contents>
+    <compatible/>
+    <dependencies><required><php><min>5.1.0</min><max>6.0.0</max></php></required></dependencies>
+</package>

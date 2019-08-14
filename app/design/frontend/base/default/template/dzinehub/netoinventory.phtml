@@ -1,0 +1,99 @@
+<?php
+/***************************************************************************
+	@extension	: Neto and Magento Inventory Mapping
+	@Version	: 1.1.0
+	@package	: Dzinehub_Bestseller	
+	@class		: app/code/community/Dzinehub/Bestseller/Block/Product/Bestsellers.php	
+	@author		: Arun
+	@email		: arun@dzine-hub.com
+	@support	: http://www.dzine-hub.com/contact-us/		
+***************************************************************************/
+?>
+<?php 
+
+$extensionenableflag = 0;
+$extensionenableflag = Mage::getStoreConfig('dzinehub_netoinventory/general/active',Mage::app()->getStore());
+if($extensionenableflag == 1 )
+{
+	$getorderid=Mage::getSingleton('checkout/session')->getLastOrderId();
+	if ($getorderid)
+	{	
+		$extensionnetokey = Mage::getStoreConfig('dzinehub_netoinventory/general/netokey',Mage::app()->getStore());
+		$order = Mage::getModel("sales/order")->load($getorderid); 
+		$magentoorderid=$order->getIncrementId();
+		$addbilling = $order->getBillingAddress()->getStreet();
+		$addshipping=$order->getShippingAddress()->getStreet();
+		$apiEndPoint="dz.neto.com.au/do/WS/NetoAPI";   
+	    
+		$requestXml = '<?xml version="1.0" encoding="UTF-8"?>';
+		$requestXml .= '<AddOrder>';
+		$requestXml .= '<Order>';
+		$requestXml .= '<Username>sample</Username>';
+		$requestXml .= '<BillFirstName>'.$order->getBillingAddress()->getFirstname().'</BillFirstName>';
+		$requestXml .= '<BillLastName>'.$order->getBillingAddress()->getLastname().'</BillLastName>';
+		$requestXml .= '<BillStreet1>'.$addbilling[0].', '.$addbilling[1].'</BillStreet1>';
+		$requestXml .= '<BillCity>'.$order->getBillingAddress()->getCity().'</BillCity>';
+		$requestXml .= '<BillState>'.$order->getBillingAddress()->getRegion().'</BillState>';
+		$requestXml .= '<BillPostCode>'.$order->getBillingAddress()->getPostcode().'</BillPostCode>';
+		$requestXml .= '<BillCountry>'.$order->getBillingAddress()->getCountry().'</BillCountry>';
+		$requestXml .= '<ShipFirstName>'.$order->getShippingAddress()->getFirstname().'</ShipFirstName>';
+		$requestXml .= '<ShipLastName>'.$order->getShippingAddress()->getFirstname().'</ShipLastName>';
+		$requestXml .= '<ShipStreet1>'.$addshipping[0].', '.$addshipping[1].'</ShipStreet1>';
+		$requestXml .= '<ShipCity>'.$order->getShippingAddress()->getCity().'</ShipCity>';
+		$requestXml .= '<ShipState>'.$order->getShippingAddress()->getRegion().'</ShipState>';
+		$requestXml .= '<ShipPostCode>'.$order->getShippingAddress()->getPostcode().'</ShipPostCode>';
+		$requestXml .= '<ShipCountry>'.$order->getShippingAddress()->getCountry().'</ShipCountry>';
+		$requestXml .= '<ShipContactPhone>'.$order->getShippingAddress()->getTelephone().'</ShipContactPhone>';
+		$requestXml .= '<CustomerRef1>'.$order->getIncrementId().'</CustomerRef1>';	   
+	   
+		foreach($order->getItemsCollection() as $sItem) 
+		{
+			$requestXml .= '<OrderLine>';
+			$requestXml .= '<SKU>'.$sItem->getSku().'</SKU>';
+			$requestXml .= '<Quantity>'.intval($sItem->getQtyOrdered()).'</Quantity>';
+			$requestXml .= '</OrderLine>';
+		}
+	    
+		$requestXml .= '</Order>';
+		$requestXml .= '</AddOrder>';
+
+		$headers = array (
+			"NETOAPI_KEY: $extensionnetokey",
+			'NETOAPI_ACTION: AddOrder',
+			//'NETOAPI_USERNAME: dzinehub',
+			'Content-Type: text/xml'
+		);
+
+		$ch = curl_init($apiEndPoint);
+		curl_setopt($ch, CURLOPT_POST, true);
+		curl_setopt($ch, CURLOPT_POSTFIELDS, $requestXml);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYHOST,false);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER,false);   
+		curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+		$responseXML = curl_exec($ch);
+		curl_close($ch);
+
+		$resp = simplexml_load_string($responseXML);
+	   
+		if($resp->Ack != 'Success') 
+		{       
+			//echo "<br><br>Shop Name : Not Found<br><br>";
+			$netologtext = "";
+			$netologtext = nl2br("\nThe order (".$magentoorderid.") is placed in Magento at ".date("r")." but not created in Neto");
+			$folder = substr($_SERVER['SCRIPT_FILENAME'],0,strrpos($_SERVER['SCRIPT_FILENAME'],"/")+1);
+			$filename = $folder."netolog.txt" ;
+			$fp = fopen($filename,"a") or die("Open error!");
+			fwrite($fp, $netologtext) or die("Write error!");
+			fclose($fp);
+		} 
+		else
+		{
+			foreach($resp->Order as $order)
+			{
+				echo "<br><br>NETO Order ID : ".$order->OrderID[0]."<br><br>";
+			}
+		}
+	}
+}
+?>
