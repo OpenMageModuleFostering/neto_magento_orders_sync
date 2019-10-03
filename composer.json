@@ -1,16 +1,19 @@
 {
-    "name": "OpenMageModuleFostering/Neto_Magento_Orders_Sync",
+    "name": "OpenMageModuleFostering\/Neto_Magento_Orders_Sync",
     "type": "magento-module",
     "license": "GNU-General-Public-License-(GPL)",
     "homepage": "",
     "description": "Enabling all magento merchants to use neto as their multi-channel software, yet continue using the magento as their choice of ecommerce frontend. Use neto as your ecommerce backend, and magento to power your website frontend, and automatically synchronize the sales orders across both the systems.",
     "authors": [
-    {
-        "name": "Arun",
-        "email": "arun@dzine-hub.com"
-    }
-],
+        {
+            "name": "Arun",
+            "email": "arun@dzine-hub.com"
+        }
+    ],
     "suggest": {
-        "magento-hackathon/magento-composer-installer": "*"
-    }
+        "magento-hackathon\/magento-composer-installer": "*"
+    },
+    "keywords": [
+        "openmage-module"
+    ]
 }
