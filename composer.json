@@ -1,5 +1,5 @@
 {
-    "name": "OpenMageModuleFostering\/Neto_Magento_Orders_Sync",
+    "name": "openmage-module-fostering\/neto_magento_orders_sync",
     "type": "magento-module",
     "license": "GNU-General-Public-License-(GPL)",
     "homepage": "",
